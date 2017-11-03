@@ -11,14 +11,14 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 
 import argparse
-import cPickle as pickle
+import _pickle as pickle
 import numpy as np
 
 import settings
 
 from caffevis.caffevis_helper import set_mean
-from jby_misc import WithTimer
-from max_tracker import scan_images_for_maxes, scan_pairs_for_maxes
+from find_maxes.jby_misc import WithTimer
+from find_maxes.max_tracker import scan_images_for_maxes, scan_pairs_for_maxes
 from settings_misc import load_network
 
 from misc import mkdir_p

@@ -13,7 +13,7 @@ from caffe_misc import RegionComputer, save_caffe_image, get_max_data_extent, ex
     compute_data_layer_focus_area, layer_name_to_top_name
 from siamese_helper import SiameseHelper
 
-from jby_misc import WithTimer
+from find_maxes.jby_misc import WithTimer
 
 # define records
 
@@ -81,10 +81,10 @@ def prepare_max_histogram(layer_name, n_channels, channel_to_histogram_values, p
 
     # for each channel
     percent_dead = np.zeros((n_channels), dtype=np.float32)
-    for channel_idx in xrange(n_channels):
+    for channel_idx in iter(range(n_channels)):
 
         if channel_idx % 100 == 0:
-            print "calculating histogram for channel %d out of %d" % (channel_idx, n_channels)
+            print("calculating histogram for channel %d out of %d" % (channel_idx, n_channels))
 
         hist, bin_edges = channel_to_histogram_values(channel_idx)
 
@@ -214,7 +214,7 @@ class MaxTracker(object):
 
         #insertion_idx = zeros((n_channels,))
         #pdb.set_trace()
-        for ii in xrange(n_channels):
+        for ii in iter(range(n_channels)):
 
             max_value = data_unroll[ii, max_indexes[ii]]
 
@@ -222,7 +222,7 @@ class MaxTracker(object):
             if np.isnan(max_value):
                 # only warn once
                 if not produced_warning:
-                    print 'WARNING: got NAN activation on input', str(layer_unique_input_source)
+                    print('WARNING: got NAN activation on input {}'.format(str(layer_unique_input_source)))
                     produced_warning = True
                 continue
 
@@ -353,7 +353,7 @@ class NetMaxTracker(object):
 
         for layer_name in self.layers:
 
-            print 'init layer: ', layer_name
+            print('init layer: {}'.format(layer_name))
             top_name = layer_name_to_top_name(net, layer_name)
             blob = net.blobs[top_name].data
 
@@ -435,9 +435,9 @@ class NetMaxTracker(object):
 
     def calculate_histograms(self, outdir):
 
-        print "calculate_histograms on network"
+        print("calculate_histograms on network")
         for layer_name in self.layers:
-            print "calculate_histogram on layer %s" % layer_name
+            print("calculate_histogram on layer %s" % layer_name)
 
             # normalize layer name, this is used for siamese networks where we want layers "conv_1" and "conv_1_p" to
             # count as the same layer in terms of activations
@@ -449,9 +449,9 @@ class NetMaxTracker(object):
 
     def calculate_correlation(self, outdir):
 
-        print "calculate_correlation on network"
+        print("calculate_correlation on network")
         for layer_name in self.layers:
-            print "calculate_correlation on layer %s" % layer_name
+            print("calculate_correlation on layer %s" % layer_name)
 
             # normalize layer name, this is used for siamese networks where we want layers "conv_1" and "conv_1_p" to
             # count as the same layer in terms of activations
@@ -481,8 +481,8 @@ class NetMaxTracker(object):
 
 def scan_images_for_maxes(settings, net, datadir, n_top, outdir, search_min):
     image_filenames, image_labels = get_files_list(settings)
-    print 'Scanning %d files' % len(image_filenames)
-    print '  First file', os.path.join(datadir, image_filenames[0])
+    print('Scanning %d files' % len(image_filenames))
+    print('  First file {}'.format(os.path.join(datadir, image_filenames[0])))
 
     sys.path.insert(0, os.path.join(settings.caffevis_caffe_root, 'python'))
     import caffe
@@ -498,14 +498,14 @@ def scan_images_for_maxes(settings, net, datadir, n_top, outdir, search_min):
 
     batch_index = 0
 
-    for image_idx in xrange(len(image_filenames)):
+    for image_idx in iter(range(len(image_filenames))):
 
         batch[batch_index].image_idx = image_idx
         batch[batch_index].filename = image_filenames[image_idx]
 
         do_print = (batch[batch_index].image_idx % 100 == 0)
         if do_print:
-            print '%s   Image %d/%d' % (datetime.now().ctime(), batch[batch_index].image_idx, len(image_filenames))
+            print('%s   Image %d/%d' % (datetime.now().ctime(), batch[batch_index].image_idx, len(image_filenames)))
 
         with WithTimer('Load image', quiet = not do_print):
             try:
@@ -514,7 +514,7 @@ def scan_images_for_maxes(settings, net, datadir, n_top, outdir, search_min):
                 batch[batch_index].im = batch[batch_index].im.astype(np.float32)
             except:
                 # skip bad/missing inputs
-                print "WARNING: skipping bad/missing input:", batch[batch_index].filename
+                print("WARNING: skipping bad/missing input: {}".format(batch[batch_index].filename))
                 continue
 
         batch_index += 1
@@ -536,14 +536,14 @@ def scan_images_for_maxes(settings, net, datadir, n_top, outdir, search_min):
 
             batch_index = 0
 
-    print 'done!'
+    print('done!')
     return tracker
 
 
 def scan_pairs_for_maxes(settings, net, datadir, n_top, outdir, search_min):
     image_filenames, image_labels = get_files_list(settings)
-    print 'Scanning %d pairs' % len(image_filenames)
-    print '  First pair', image_filenames[0]
+    print('Scanning %d pairs' % len(image_filenames))
+    print('  First pair {}'.format(image_filenames[0]))
 
     sys.path.insert(0, os.path.join(settings.caffevis_caffe_root, 'python'))
     import caffe
@@ -559,7 +559,7 @@ def scan_pairs_for_maxes(settings, net, datadir, n_top, outdir, search_min):
 
     batch_index = 0
 
-    for image_idx in xrange(len(image_filenames)):
+    for image_idx in iter(range(len(image_filenames))):
 
         batch[batch_index].image_idx = image_idx
         batch[batch_index].images_pair = image_filenames[image_idx]
@@ -568,7 +568,7 @@ def scan_pairs_for_maxes(settings, net, datadir, n_top, outdir, search_min):
 
         do_print = (image_idx % 100 == 0)
         if do_print:
-            print '%s   Pair %d/%d' % (datetime.now().ctime(), batch[batch_index].image_idx, len(image_filenames))
+            print('%s   Pair %d/%d' % (datetime.now().ctime(), batch[batch_index].image_idx, len(image_filenames)))
 
         with WithTimer('Load image', quiet=not do_print):
             try:
@@ -588,7 +588,7 @@ def scan_pairs_for_maxes(settings, net, datadir, n_top, outdir, search_min):
                     
             except:
                 # skip bad/missing inputs
-                print "WARNING: skipping bad/missing inputs:", filename1, filename2
+                print("WARNING: skipping bad/missing inputs: {} {}".format(filename1, filename2))
                 continue
 
         batch_index += 1
@@ -608,7 +608,7 @@ def scan_pairs_for_maxes(settings, net, datadir, n_top, outdir, search_min):
 
             batch_index = 0
 
-    print 'done!'
+    print('done!')
     return tracker
 
 
@@ -618,9 +618,9 @@ def save_representations(settings, net, datadir, filelist, layer_name, first_N =
         first_N = len(image_filenames)
     assert first_N <= len(image_filenames)
     image_indices = range(first_N)
-    print 'Scanning %d files' % len(image_indices)
+    print('Scanning %d files' % len(image_indices))
     assert len(image_indices) > 0
-    print '  First file', os.path.join(datadir, image_filenames[image_indices[0]])
+    print('  First file {}'.format(os.path.join(datadir, image_filenames[image_indices[0]])))
 
     sys.path.insert(0, os.path.join(settings.caffevis_caffe_root, 'python'))
     import caffe
@@ -631,7 +631,7 @@ def save_representations(settings, net, datadir, filelist, layer_name, first_N =
         filename = image_filenames[image_idx]
         do_print = (image_idx % 10 == 0)
         if do_print:
-            print '%s   Image %d/%d' % (datetime.now().ctime(), image_idx, len(image_indices))
+            print('%s   Image %d/%d' % (datetime.now().ctime(), image_idx, len(image_indices)))
         with WithTimer('Load image', quiet = not do_print):
             im = caffe.io.load_image(os.path.join(datadir, filename), color=not settings._calculated_is_gray_model)
         with WithTimer('Predict   ', quiet = not do_print):
@@ -645,7 +645,7 @@ def save_representations(settings, net, datadir, filelist, layer_name, first_N =
             indices[ii] = image_idx
             rep[ii] = net.blobs[top_name].data[0]
 
-    print 'done!'
+    print('done!')
     return indices,rep
 
 
@@ -698,11 +698,11 @@ def output_max_patches(settings, max_tracker, net, layer_name, idx_begin, idx_en
     image_filenames, image_labels = get_files_list(settings)
 
     if settings.is_siamese:
-        print 'Loaded filenames and labels for %d pairs' % len(image_filenames)
-        print '  First pair', image_filenames[0]
+        print('Loaded filenames and labels for %d pairs' % len(image_filenames))
+        print('  First pair {}'.format(image_filenames[0]))
     else:
-        print 'Loaded filenames and labels for %d files' % len(image_filenames)
-        print '  First file', os.path.join(datadir, image_filenames[0])
+        print('Loaded filenames and labels for %d files' % len(image_filenames))
+        print('  First file {}'.format(os.path.join(datadir, image_filenames[0])))
 
     siamese_helper = SiameseHelper(settings.layers_list)
 
@@ -756,7 +756,7 @@ def output_max_patches(settings, max_tracker, net, layer_name, idx_begin, idx_en
         relevant_outputs_exist = [os.path.exists(file_name) for file_name in relevant_outputs]
         if all(relevant_outputs_exist) and \
             ((channel_idx != idx_end - 1) or ((channel_idx == idx_end - 1) and (batch_index == 0))):
-            print "skipped generation of channel %d in layer %s since files already exist" % (channel_idx, layer_name)
+            print("skipped generation of channel %d in layer %s since files already exist" % (channel_idx, layer_name))
             continue
 
         if do_info:
@@ -806,7 +806,7 @@ def output_max_patches(settings, max_tracker, net, layer_name, idx_begin, idx_en
             batch[batch_index].filename = image_filenames[batch[batch_index].im_idx]
             do_print = (batch[batch_index].max_idx_0 == 0)
             if do_print:
-                print '%s   Output file/image(s) %d/%d   layer %s channel %d' % (datetime.now().ctime(), batch[batch_index].cc * num_top, n_total_images, layer_name, batch[batch_index].channel_idx)
+                print('%s   Output file/image(s) %d/%d   layer %s channel %d' % (datetime.now().ctime(), batch[batch_index].cc * num_top, n_total_images, layer_name, batch[batch_index].channel_idx))
 
 
             # print "DEBUG: (mt.is_spatial, batch[batch_index].ii, batch[batch_index].jj, layer_name, size_ii, size_jj, data_size_ii, data_size_jj)", str((mt.is_spatial, batch[batch_index].ii, batch[batch_index].jj, rc, layer_name, size_ii, size_jj, data_size_ii, data_size_jj))
@@ -916,7 +916,7 @@ def output_max_patches(settings, max_tracker, net, layer_name, idx_begin, idx_en
                             reproduced_val = net.blobs[batch[i].denormalized_top_name].data[i, batch[i].channel_idx]
 
                     if abs(reproduced_val - batch[i].recorded_val) > .1:
-                        print 'Warning: recorded value %s is suspiciously different from reproduced value %s. Is the filelist the same?' % (batch[i].recorded_val, reproduced_val)
+                        print('Warning: recorded value %s is suspiciously different from reproduced value %s. Is the filelist the same?' % (batch[i].recorded_val, reproduced_val))
 
                     if do_maxes:
                         #grab image from data layer, not from im (to ensure preprocessing / center crop details match between image and deconv/backprop)
@@ -966,7 +966,7 @@ def output_max_patches(settings, max_tracker, net, layer_name, idx_begin, idx_en
                                                            batch[i].out_ii_end, batch[i].out_ii_start, batch[i].out_jj_end, batch[i].out_jj_start, size_ii, size_jj)
 
                         if out_arr.max() == 0:
-                            print 'Warning: Deconv out_arr in range', out_arr.min(), 'to', out_arr.max(), 'ensure force_backward: true in prototxt'
+                            print(['Warning: Deconv out_arr in range', out_arr.min(), 'to', out_arr.max(), 'ensure force_backward: true in prototxt'])
 
                         if do_deconv:
                             with WithTimer('Save img  ', quiet=not do_print):
@@ -997,7 +997,7 @@ def output_max_patches(settings, max_tracker, net, layer_name, idx_begin, idx_en
                                                            batch[i].out_ii_end, batch[i].out_ii_start, batch[i].out_jj_end, batch[i].out_jj_start, size_ii, size_jj)
 
                         if out_arr.max() == 0:
-                            print 'Warning: Deconv out_arr in range', out_arr.min(), 'to', out_arr.max(), 'ensure force_backward: true in prototxt'
+                            print(['Warning: Deconv out_arr in range', out_arr.min(), 'to', out_arr.max(), 'ensure force_backward: true in prototxt'])
                         if do_backprop:
                             with WithTimer('Save img  ', quiet = not do_print):
                                 save_caffe_image(out_arr, batch[i].backprop_filenames[batch[i].max_idx_0],

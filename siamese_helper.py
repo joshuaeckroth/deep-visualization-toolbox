@@ -128,7 +128,7 @@ class SiameseHelper(object):
         :return: normalized layer name
         '''
 
-        if self.layer_name_to_normalized_layer_name.has_key(layer_name):
+        if layer_name in self.layer_name_to_normalized_layer_name:
             return self.layer_name_to_normalized_layer_name[layer_name]
 
         return layer_name
@@ -146,7 +146,7 @@ class SiameseHelper(object):
         if selected_input_index == 0:
             return normalized_layer_name
 
-        if self.normalized_layer_name_to_denormalized_layer_name.has_key(normalized_layer_name):
+        if normalized_layer_name in self.normalized_layer_name_to_denormalized_layer_name:
             return self.normalized_layer_name_to_denormalized_layer_name[normalized_layer_name]
 
         # this can happen for layer names which don't appear in the layers_list setting
@@ -161,7 +161,7 @@ class SiameseHelper(object):
         :return index of image in the pair, 0 or 1:
         '''
 
-        if self.layer_name_to_index_of_saved_image.has_key(layer_name):
+        if layer_name in self.layer_name_to_index_of_saved_image:
             return self.layer_name_to_index_of_saved_image[layer_name]
 
         # this can happen for layer names which don't appear in the layers_list setting
@@ -174,7 +174,7 @@ class SiameseHelper(object):
         :return: layer format
         '''
 
-        if self.layer_name_to_format.has_key(layer_name):
+        if layer_name in self.layer_name_to_format:
             return self.layer_name_to_format[layer_name]
 
         # fallback to normal format

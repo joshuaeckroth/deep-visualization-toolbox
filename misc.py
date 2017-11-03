@@ -26,7 +26,7 @@ class WithTimer:
     def __exit__(self, *args):
         if not self.quiet:
             titlestr = (' ' + self.title) if self.title else ''
-            print 'Elapsed%s: wall: %.06f, sys: %.06f' % ((titlestr,) + self.elapsed())
+            print('Elapsed%s: wall: %.06f, sys: %.06f' % ((titlestr,) + self.elapsed()))
 
 
 
@@ -107,7 +107,7 @@ def get_files_from_siamese_image_list(settings):
 
 def get_files_list(settings):
 
-    print 'Getting image list...'
+    print('Getting image list...')
 
     # available_files - local list of files
     if settings.static_files_input_mode == "directory":
@@ -121,6 +121,6 @@ def get_files_list(settings):
         raise Exception(('Error: setting static_files_input_mode has invalid option (%s)' %
                          (settings.static_files_input_mode)))
 
-    print 'Getting image list... Done.'
+    print('Getting image list... Done.')
 
     return available_files, labels

@@ -42,7 +42,7 @@ def get_pretty_layer_name(settings, layer_name):
     if hasattr(settings, 'caffevis_layer_pretty_name_fn'):
         ret = settings.caffevis_layer_pretty_name_fn(ret)
     if ret != layer_name:
-        print '  Prettified layer name: "%s" -> "%s"' % (layer_name, ret)
+        print('  Prettified layer name: "%s" -> "%s"' % (layer_name, ret))
     return ret
 
 
@@ -122,12 +122,12 @@ def check_force_backward_true(prototxt_file):
                 break
 
     if not found:
-        print '\n\nWARNING: the specified prototxt'
-        print '"%s"' % prototxt_file
-        print 'does not contain the line "force_backward: true". This may result in backprop'
-        print 'and deconv producing all zeros at the input layer. You may want to add this line'
-        print 'to your prototxt file before continuing to force backprop to compute derivatives'
-        print 'at the data layer as well.\n\n'
+        print('\n\nWARNING: the specified prototxt')
+        print('"%s"' % prototxt_file)
+        print('does not contain the line "force_backward: true". This may result in backprop')
+        print('and deconv producing all zeros at the input layer. You may want to add this line')
+        print('to your prototxt file before continuing to force backprop to compute derivatives')
+        print('at the data layer as well.\n\n')
 
 
 def load_mean_file(data_mean_file):
@@ -135,7 +135,7 @@ def load_mean_file(data_mean_file):
     if file_extension == ".npy":
         # load mean from numpy array
         data_mean = np.load(data_mean_file)
-        print "Loaded mean from numpy file, data_mean.shape: ", data_mean.shape
+        print("Loaded mean from numpy file, data_mean.shape: {}".format(data_mean.shape))
 
     elif file_extension == ".binaryproto":
 
@@ -146,35 +146,35 @@ def load_mean_file(data_mean_file):
         blob.ParseFromString(data)
         data_mean = np.array(caffe.io.blobproto_to_array(blob))
         data_mean = np.squeeze(data_mean)
-        print "Loaded mean from binaryproto file, data_mean.shape: ", data_mean.shape
+        print("Loaded mean from binaryproto file, data_mean.shape: {}".format(data_mean.shape))
 
     else:
         # unknown file extension, trying to load as numpy array
         data_mean = np.load(data_mean_file)
-        print "Loaded mean from numpy file, data_mean.shape: ", data_mean.shape
+        print("Loaded mean from numpy file, data_mean.shape: {}".format(data_mean.shape))
 
     return data_mean
 
 def set_mean(caffevis_data_mean, generate_channelwise_mean, net):
 
-    if isinstance(caffevis_data_mean, basestring):
+    if isinstance(caffevis_data_mean, str):
         # If the mean is given as a filename, load the file
         try:
             data_mean = load_mean_file(caffevis_data_mean)
         except IOError:
-            print '\n\nCound not load mean file:', caffevis_data_mean
-            print 'Ensure that the values in settings.py point to a valid model weights file, network'
-            print 'definition prototxt, and mean. To fetch a default model and mean file, use:\n'
-            print '$ cd models/caffenet-yos/'
-            print '$ ./fetch.sh\n\n'
+            print('\n\nCound not load mean file: {}'.format(caffevis_data_mean))
+            print('Ensure that the values in settings.py point to a valid model weights file, network')
+            print('definition prototxt, and mean. To fetch a default model and mean file, use:\n')
+            print('$ cd models/caffenet-yos/')
+            print('$ ./fetch.sh\n\n')
             raise
         input_shape = net.blobs[net.inputs[0]].data.shape[-2:]  # e.g. 227x227
         # Crop center region (e.g. 227x227) if mean is larger (e.g. 256x256)
         excess_h = data_mean.shape[1] - input_shape[0]
         excess_w = data_mean.shape[2] - input_shape[1]
         assert excess_h >= 0 and excess_w >= 0, 'mean should be at least as large as %s' % repr(input_shape)
-        data_mean = data_mean[:, (excess_h / 2):(excess_h / 2 + input_shape[0]),
-                          (excess_w / 2):(excess_w / 2 + input_shape[1])]
+        data_mean = data_mean[:, int(excess_h / 2):int(excess_h / 2 + input_shape[0]),
+                          int(excess_w / 2):int(excess_w / 2 + input_shape[1])]
     elif caffevis_data_mean is None:
         data_mean = None
     else:
@@ -188,7 +188,7 @@ def set_mean(caffevis_data_mean, generate_channelwise_mean, net):
         data_mean = data_mean.mean(1).mean(1)
 
     if data_mean is not None:
-        print 'Using mean with shape:', data_mean.shape
+        print('Using mean with shape: {}'.format(data_mean.shape))
         net.transformer.set_mean(net.inputs[0], data_mean)
 
     return data_mean
@@ -260,7 +260,7 @@ def get_image_from_files(settings, unit_folder_path, should_crop_to_corner, resi
         return mega_image
 
     except:
-        print '\nAttempted to load files from %s but failed. ' % unit_folder_path
+        print('\nAttempted to load files from %s but failed. ' % unit_folder_path)
         # set black image as place holder
         return np.zeros((resize_shape[0], resize_shape[1], 3), dtype=np.uint8)
         pass

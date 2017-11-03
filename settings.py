@@ -101,9 +101,9 @@ if global_scale != 1.0:
 # All window configuation information is now contained in the
 # window_panes variable. Print if desired:
 if debug_window_panes:
-    print 'Final window panes and locations/sizes (i, j, i_size, j_size):'
+    print('Final window panes and locations/sizes (i, j, i_size, j_size):')
     for pane in window_panes:
-        print '  Pane: %s' % repr(pane)
+        print('  Pane: %s' % repr(pane))
 
 help_pane_loc = locals().get('help_pane_loc', (.07, .07, .86, .86))    # as a fraction of main window
 window_background = locals().get('window_background', (.2, .2, .2))
@@ -239,15 +239,15 @@ if 'caffevis_deploy_prototxt' in locals():
     caffevis_deploy_prototxt = caffevis_deploy_prototxt.replace('%DVT_ROOT%', dvt_root)
 if 'caffevis_network_weights' in locals():
     caffevis_network_weights = caffevis_network_weights.replace('%DVT_ROOT%', dvt_root)
-if isinstance(caffevis_data_mean, basestring):
+if isinstance(caffevis_data_mean, str):
     caffevis_data_mean = caffevis_data_mean.replace('%DVT_ROOT%', dvt_root)
-if isinstance(caffevis_labels, basestring):
+if isinstance(caffevis_labels, str):
     caffevis_labels = caffevis_labels.replace('%DVT_ROOT%', dvt_root)
-if isinstance(caffevis_outputs_dir, basestring):
+if isinstance(caffevis_outputs_dir, str):
     caffevis_outputs_dir = caffevis_outputs_dir.replace('%DVT_ROOT%', dvt_root)
-if isinstance(static_files_input_file, basestring):
+if isinstance(static_files_input_file, str):
     static_files_input_file = static_files_input_file.replace('%DVT_ROOT%', dvt_root)
-if isinstance(static_files_dir, basestring):
+if isinstance(static_files_dir, str):
     static_files_dir = static_files_dir.replace('%DVT_ROOT%', dvt_root)
 
 

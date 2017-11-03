@@ -8,22 +8,22 @@ from image_misc import norm01c
 def shownet(net):
     '''Print some stats about a net and its activations'''
     
-    print '%-41s%-31s%s' % ('', 'acts', 'act diffs')
-    print '%-45s%-31s%s' % ('', 'params', 'param diffs')
+    print('%-41s%-31s%s' % ('', 'acts', 'act diffs'))
+    print('%-45s%-31s%s' % ('', 'params', 'param diffs'))
     for k, v in net.blobs.items():
         if k in net.params:
             params = net.params[k]
             for pp, blob in enumerate(params):
                 if pp == 0:
-                    print '  ', 'P: %-5s'%k,
+                    print('   P: %-5s'%k, end='')
                 else:
-                    print ' ' * 11,
-                print '%-32s' % repr(blob.data.shape),
-                print '%-30s' % ('(%g, %g)' % (blob.data.min(), blob.data.max())),
-                print '(%g, %g)' % (blob.diff.min(), blob.diff.max())
-        print '%-5s'%k, '%-34s' % repr(v.data.shape),
-        print '%-30s' % ('(%g, %g)' % (v.data.min(), v.data.max())),
-        print '(%g, %g)' % (v.diff.min(), v.diff.max())
+                    print(' ' * 11, end='')
+                print('%-32s' % repr(blob.data.shape), end='')
+                print('%-30s' % ('(%g, %g)' % (blob.data.min(), blob.data.max())), end='')
+                print('(%g, %g)' % (blob.diff.min(), blob.diff.max()))
+        print('%-5s'%k, '%-34s' % repr(v.data.shape), end='')
+        print('%-30s' % ('(%g, %g)' % (v.data.min(), v.data.max())), end='')
+        print('(%g, %g)' % (v.diff.min(), v.diff.max()))
 
 
 class RegionComputer(object):
@@ -152,7 +152,7 @@ def save_caffe_image(img, filename, autoscale = True, autoscale_center = None):
 
 def layer_name_to_top_name(net, layer_name):
 
-    if net.top_names.has_key(layer_name) and len(net.top_names[layer_name]) >= 1:
+    if layer_name in net.top_names and len(net.top_names[layer_name]) >= 1:
         return net.top_names[layer_name][0]
 
     else:
@@ -256,7 +256,7 @@ def extract_patch_from_image(data, net, selected_input_index, settings,
                                                                                data_jj_start:data_jj_end]
 
         else:
-            print "Error: invalid value for selected_input_index (", selected_input_index, ")"
+            print("Error: invalid value for selected_input_index ({})".format(selected_input_index))
     else:
         out_arr = np.zeros((3, size_ii, size_jj), dtype='float32')
         out_arr[:, out_ii_start:out_ii_end, out_jj_start:out_jj_end] = data[:,

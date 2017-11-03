@@ -11,7 +11,7 @@ import glob
 try:
     import cv2
 except ImportError:
-    print 'Error: Could not import cv2, please install it first.'
+    print('Error: Could not import cv2, please install it first.')
     raise
 
 from misc import WithTimer
@@ -52,12 +52,12 @@ class LiveVis(object):
 
         for module_path, app_name in settings.installed_apps:
             module = importlib.import_module(module_path)
-            print 'got module', module
+            print('got module: {}'.format(module))
             app_class  = getattr(module, app_name)
-            print 'got app', app_class
+            print('got app: {}'.format(app_class))
             self.app_classes[app_name] = app_class
 
-        for app_name, app_class in self.app_classes.iteritems():
+        for app_name, app_class in iter(self.app_classes.items()):
             app = app_class(settings, self.bindings)
             self.apps[app_name] = app
         self.help_mode = False
@@ -101,7 +101,7 @@ class LiveVis(object):
                                      (max_i,max_j,1))
         #print 'BUFFER IS:', self.window_buffer.shape, self.window_buffer.min(), self.window_buffer.max()
 
-        for _,pane in self.panes.iteritems():
+        for _,pane in iter(self.panes.items()):
             pane.data = self.window_buffer[pane.i_begin:pane.i_end, pane.j_begin:pane.j_end]
 
         # Allocate help pane
@@ -123,7 +123,7 @@ class LiveVis(object):
         '''
 
         if event == cv2.EVENT_LBUTTONUP:
-            for app_name, app in self.apps.iteritems():
+            for app_name, app in iter(self.apps.items()):
                 with WithTimer('%s:on_mouse_click' % app_name, quiet=self.debug_level < 1):
                     key = app.handle_mouse_left_click(x, y, flags, param, self.panes)
 
@@ -144,7 +144,7 @@ class LiveVis(object):
                 self.settings.window_panes[5][1][2] + 3*20 - self.settings._calculated_control_pane_height,
                 self.settings.window_panes[5][1][3])
 
-            for _, pane in self.panes.iteritems():
+            for _, pane in iter(self.panes.items()):
                 pane.data = self.window_buffer[pane.i_begin:pane.i_end, pane.j_begin:pane.j_end]
 
             return True
@@ -166,8 +166,8 @@ class LiveVis(object):
         self.input_updater.start()
 
         heartbeat_functions = [self.input_updater.heartbeat]
-        for app_name, app in self.apps.iteritems():
-            print 'Starting app:', app_name
+        for app_name, app in iter(self.apps.items()):
+            print('Starting app: {}'.format(app_name))
             app.start(self)
             heartbeat_functions.extend(app.get_heartbeats())
 
@@ -219,13 +219,13 @@ class LiveVis(object):
                 key,do_redraw = self.handle_key_pre_apps(key)
                 redraw_needed |= do_redraw
                 imshow_needed |= do_redraw
-                for app_name, app in self.apps.iteritems():
+                for app_name, app in iter(self.apps.items()):
                     with WithTimer('%s:handle_key' % app_name, quiet = self.debug_level < 1):
                         key = app.handle_key(key, self.panes)
                 key = self.handle_key_post_apps(key)
                 if self.quit:
                     break
-            for app_name, app in self.apps.iteritems():
+            for app_name, app in iter(self.apps.items()):
                 redraw_needed |= app.redraw_needed()
 
             redraw_needed |= self.check_for_control_height_update()
@@ -249,7 +249,7 @@ class LiveVis(object):
                                since_keypress >= self.settings.keypress_pause_handle_iterations)
             if frame_for_apps is not None and do_handle_input:
                 # Pass frame to apps for processing
-                for app_name, app in self.apps.iteritems():
+                for app_name, app in iter(self.apps.items()):
                     with WithTimer('%s:handle_input' % app_name, quiet = self.debug_level < 1):
                         app.handle_input(latest_frame_data, latest_label, latest_filename, self.panes)
                 frame_for_apps = None
@@ -259,7 +259,7 @@ class LiveVis(object):
                          (since_keypress >= self.settings.keypress_pause_redraw_iterations or
                           since_redraw >= self.settings.redraw_at_least_every))
             if redraw_needed and do_redraw:
-                for app_name, app in self.apps.iteritems():
+                for app_name, app in iter(self.apps.items()):
                     with WithTimer('%s:draw' % app_name, quiet = self.debug_level < 1):
                         imshow_needed |= app.draw(self.panes)
                 redraw_needed = False
@@ -269,8 +269,8 @@ class LiveVis(object):
             if imshow_needed:
                 # Only redraw pane debug if display will be updated
                 if hasattr(self.settings, 'debug_window_panes') and self.settings.debug_window_panes:
-                    for pane_name,pane in self.panes.iteritems():
-                        print pane_name, pane
+                    for pane_name,pane in iter(self.panes.items()):
+                        print([pane_name, pane])
                         pane.data[:] = pane.data * .5
                         line = [FormattedString('%s |' % pane_name, self.debug_pane_defaults),
                                 FormattedString('pos: %d,%d |' % (pane.i_begin, pane.j_begin), self.debug_pane_defaults),
@@ -300,7 +300,7 @@ class LiveVis(object):
             # Extra sleep just for debugging. In production all main loop sleep should be in cv2.waitKey.
             #time.sleep(2)
 
-        print '\n\nTrying to exit run_loop...'
+        print('\n\nTrying to exit run_loop...')
         self.input_updater.quit = True
         self.input_updater.join(.01 + float(self.settings.input_updater_sleep_after_read_frame) * 5)
         if self.input_updater.is_alive():
@@ -308,11 +308,11 @@ class LiveVis(object):
         else:
             self.input_updater.free_camera()
 
-        for app_name, app in self.apps.iteritems():
-            print 'Quitting app:', app_name
+        for app_name, app in iter(self.apps.items()):
+            print('Quitting app: {}'.format(app_name))
             app.quit()
 
-        print 'Input thread joined and apps quit; exiting run_loop.'
+        print('Input thread joined and apps quit; exiting run_loop.')
 
     def handle_key_pre_apps(self, key):
         tag = self.bindings.get_tag(key)
@@ -328,10 +328,10 @@ class LiveVis(object):
             self.toggle_help_mode()
         elif tag == 'stretch_mode':
             self.input_updater.toggle_stretch_mode()
-            print 'Stretch mode is now', self.input_updater.static_file_stretch_mode
+            print('Stretch mode is now {}'.format(self.input_updater.static_file_stretch_mode))
         elif tag == 'debug_level':
             self.debug_level = (self.debug_level + 1) % 3
-            for app_name, app in self.apps.iteritems():
+            for app_name, app in iter(self.apps.items()):
                 app.set_debug(self.debug_level)
         else:
             return key, False
@@ -347,12 +347,12 @@ class LiveVis(object):
             key_label, masked_vals = self.bindings.get_key_label_from_keycode(key, extra_info = True)
             masked_vals_pp = ', '.join(['%d (%s)' % (mv, hex(mv)) for mv in masked_vals])
             if key_label is None:
-                print 'Got key code %d (%s), did not match any known key (masked vals tried: %s)' % (key, hex(key), masked_vals_pp)
+                print('Got key code %d (%s), did not match any known key (masked vals tried: %s)' % (key, hex(key), masked_vals_pp))
             elif tag is None:
-                print 'Got key code %d (%s), matched key "%s", but key is not bound to any function' % (key, hex(key), key_label)
+                print('Got key code %d (%s), matched key "%s", but key is not bound to any function' % (key, hex(key), key_label))
             else:
-                print 'Got key code %d (%s), matched key "%s", bound to "%s", but nobody handled "%s"' % (
-                    key, hex(key), key_label, tag, tag)
+                print('Got key code %d (%s), matched key "%s", bound to "%s", but nobody handled "%s"' % (
+                    key, hex(key), key_label, tag, tag))
 
     def display_frame(self, frame):
 
@@ -385,7 +385,7 @@ class LiveVis(object):
         locy, boxes = cv2_typeset_text(self.help_pane.data, lines, loc,
                                        line_spacing = self.settings.help_line_spacing)
 
-        for app_name, app in self.apps.iteritems():
+        for app_name, app in iter(self.apps.items()):
             locy = app.draw_help(self.help_pane, locy)
 
     def toggle_help_mode(self):
@@ -395,4 +395,4 @@ class LiveVis(object):
         self.quit = True
 
 if __name__ == '__main__':
-    print 'You probably want to run ./run_toolbox.py instead.'
+    print('You probably want to run ./run_toolbox.py instead.')

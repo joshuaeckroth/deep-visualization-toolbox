@@ -3,7 +3,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 
-import cPickle as pickle
+import _pickle as pickle
 
 from caffevis.caffevis_helper import set_mean
 from caffe_misc import layer_name_to_top_name, get_max_data_extent
@@ -109,11 +109,11 @@ def load_network(settings):
     if settings.caffevis_mode_gpu:
         caffe.set_mode_gpu()
         caffe.set_device(settings.caffevis_gpu_id)
-        print 'Loaded caffe in GPU mode, using device', settings.caffevis_gpu_id
+        print('Loaded caffe in GPU mode, using device {}'.format(settings.caffevis_gpu_id))
 
     else:
         caffe.set_mode_cpu()
-        print 'Loaded caffe in CPU mode'
+        print('Loaded caffe in CPU mode')
 
     process_network_proto(settings)
 
@@ -277,8 +277,8 @@ def get_receptive_field(settings, net, layer_name):
             should_save_to_cache = True
 
     # calculate lazy
-    if not settings._receptive_field_per_layer.has_key(layer_name):
-        print "Calculating receptive fields for layer %s" % (layer_name)
+    if layer_name not in settings._receptive_field_per_layer:
+        print("Calculating receptive fields for layer %s" % (layer_name))
         top_name = layer_name_to_top_name(net, layer_name)
         if top_name is not None:
             blob = net.blobs[top_name].data

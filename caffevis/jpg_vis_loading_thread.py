@@ -9,7 +9,7 @@ import math
 from codependent_thread import CodependentThread
 from image_misc import caffe_load_image, ensure_uint255_and_resize_to_fit, \
     ensure_uint255_and_resize_without_fit
-from caffevis_helper import crop_to_corner, get_image_from_files
+from caffevis.caffevis_helper import crop_to_corner, get_image_from_files
 
 import caffe
 
@@ -42,8 +42,8 @@ class JPGVisLoadingThread(CodependentThread):
             images[image_index_to_set] = ensure_uint255_and_resize_without_fit(img, resize_shape)
 
         except IOError:
-            print '\nAttempted to load file %s but failed. To supress this warning, remove layer "%s" from settings.caffevis_jpgvis_layers' % \
-                  (jpg_path, state_layer_name)
+            print('\nAttempted to load file %s but failed. To supress this warning, remove layer "%s" from settings.caffevis_jpgvis_layers' % \
+                  (jpg_path, state_layer_name))
             # set black image as place holder
             images[image_index_to_set] = np.zeros((resize_shape[0], resize_shape[1], 3), dtype=np.uint8)
             pass
@@ -83,7 +83,7 @@ class JPGVisLoadingThread(CodependentThread):
         return
 
     def run(self):
-        print 'JPGVisLoadingThread.run called'
+        print('JPGVisLoadingThread.run called')
         
         while not self.is_timed_out():
             with self.state.lock:
@@ -192,4 +192,4 @@ class JPGVisLoadingThread(CodependentThread):
                 self.state.jpgvis_to_load_key = None
                 self.state.drawing_stale = True
 
-        print 'JPGVisLoadingThread.run: finished'
+        print('JPGVisLoadingThread.run: finished')

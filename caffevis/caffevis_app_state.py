@@ -516,10 +516,10 @@ class CaffeVisAppState(object):
         try:
             return SiameseHelper.backward_from_layer(net, backprop_layer_def, backprop_unit, self.siamese_view_mode)
         except AttributeError:
-            print 'ERROR: required bindings (backward_from_layer) not found! Try using the deconv-deep-vis-toolbox branch as described here: https://github.com/yosinski/deep-visualization-toolbox'
+            print('ERROR: required bindings (backward_from_layer) not found! Try using the deconv-deep-vis-toolbox branch as described here: https://github.com/yosinski/deep-visualization-toolbox')
             raise
         except ValueError:
-            print "ERROR: probably impossible to backprop layer %s, ignoring to avoid crash" % (str(backprop_layer_def['name/s']))
+            print("ERROR: probably impossible to backprop layer %s, ignoring to avoid crash" % (str(backprop_layer_def['name/s'])))
             with self.lock:
                 self.back_enabled = False
 
@@ -528,10 +528,10 @@ class CaffeVisAppState(object):
         try:
             return SiameseHelper.deconv_from_layer(net, backprop_layer_def, backprop_unit, self.siamese_view_mode, deconv_type)
         except AttributeError:
-            print 'ERROR: required bindings (deconv_from_layer) not found! Try using the deconv-deep-vis-toolbox branch as described here: https://github.com/yosinski/deep-visualization-toolbox'
+            print('ERROR: required bindings (deconv_from_layer) not found! Try using the deconv-deep-vis-toolbox branch as described here: https://github.com/yosinski/deep-visualization-toolbox')
             raise
         except ValueError:
-            print "ERROR: probably impossible to deconv layer %s, ignoring to avoid crash" % (str(backprop_layer_def['name/s']))
+            print("ERROR: probably impossible to deconv layer %s, ignoring to avoid crash" % (str(backprop_layer_def['name/s'])))
             with self.lock:
                 self.back_enabled = False
 
@@ -625,7 +625,7 @@ class CaffeVisAppState(object):
         if hasattr(self.settings, 'caffevis_filter_layers'):
             for layer_def in self.settings.layers_list:
                 if self.settings.caffevis_filter_layers(layer_def['name/s']):
-                    print '  Layer filtered out by caffevis_filter_layers: %s' % str(layer_def['name/s'])
+                    print('  Layer filtered out by caffevis_filter_layers: %s' % str(layer_def['name/s']))
             self.settings.layers_list = filter(lambda layer_def: not self.settings.caffevis_filter_layers(layer_def['name/s']), self.settings.layers_list)
 
 

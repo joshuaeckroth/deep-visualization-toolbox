@@ -12,7 +12,7 @@ sys.path.insert(0,parentdir)
 
 import cv2
 import numpy as np
-import StringIO
+import io
 
 from find_maxes.find_max_acts import load_max_tracker_from_file
 import find_maxes.max_tracker
@@ -25,10 +25,10 @@ from image_misc import norm01, norm01c, tile_images_normalize, ensure_float01, t
     ensure_uint255_and_resize_to_fit, resize_without_fit, ensure_uint255, \
     caffe_load_image, ensure_uint255_and_resize_without_fit, array_histogram, fig2data
 from image_misc import FormattedString, cv2_typeset_text, to_255
-from caffe_proc_thread import CaffeProcThread
-from caffevis_app_state import CaffeVisAppState, SiameseViewMode, PatternMode, BackpropMode, BackpropViewOption, \
+from caffevis.caffe_proc_thread import CaffeProcThread
+from caffevis.caffevis_app_state import CaffeVisAppState, SiameseViewMode, PatternMode, BackpropMode, BackpropViewOption, \
     ColorMapOption, InputOverlayOption
-from caffevis_helper import get_pretty_layer_name, read_label_file, load_sprite_image, load_square_sprite_image, \
+from caffevis.caffevis_helper import get_pretty_layer_name, read_label_file, load_sprite_image, load_square_sprite_image, \
     set_mean, get_image_from_files
 from caffe_misc import layer_name_to_top_name, save_caffe_image
 from siamese_helper import SiameseHelper
@@ -41,7 +41,7 @@ class CaffeVisApp(BaseApp):
     def __init__(self, settings, key_bindings):
         super(CaffeVisApp, self).__init__(settings, key_bindings)
 
-        print 'Got settings', settings
+        print('Got settings {}'.format(settings))
         self.settings = settings
         self.bindings = key_bindings
 
@@ -74,7 +74,7 @@ class CaffeVisApp(BaseApp):
         self.buttons_boxes = []
 
     def start(self, live_vis):
-        from jpg_vis_loading_thread import JPGVisLoadingThread
+        from caffevis.jpg_vis_loading_thread import JPGVisLoadingThread
 
         self.live_vis = live_vis
         self.state = CaffeVisAppState(self.net, self.settings, self.bindings, live_vis)
@@ -102,7 +102,7 @@ class CaffeVisApp(BaseApp):
         return [self.proc_thread.heartbeat, self.jpgvis_thread.heartbeat]
             
     def quit(self):
-        print 'CaffeVisApp: trying to quit'
+        print('CaffeVisApp: trying to quit')
 
         with self.state.lock:
             self.state.quit = True
@@ -116,26 +116,26 @@ class CaffeVisApp(BaseApp):
                 raise Exception('CaffeVisApp: Could not join proc_thread; giving up.')
             self.proc_thread = None
                 
-        print 'CaffeVisApp: quitting.'
+        print('CaffeVisApp: quitting.')
         
     def _can_skip_all(self, panes):
         return ('caffevis_layers' not in panes.keys())
         
     def handle_input(self, input_image, input_label, input_filename, panes):
         if self.debug_level > 1:
-            print 'handle_input: frame number', self.handled_frames, 'is', 'None' if input_image is None else 'Available'
+            print(['handle_input: frame number', self.handled_frames, 'is', 'None' if input_image is None else 'Available'])
         self.handled_frames += 1
         if self._can_skip_all(panes):
             return
 
         with self.state.lock:
             if self.debug_level > 1:
-                print 'CaffeVisApp.handle_input: pushed frame'
+                print('CaffeVisApp.handle_input: pushed frame')
             self.state.next_frame = input_image
             self.state.next_label = input_label
             self.state.next_filename = input_filename
             if self.debug_level > 1:
-                print 'CaffeVisApp.handle_input: caffe_net_state is:', self.state.caffe_net_state
+                print('CaffeVisApp.handle_input: caffe_net_state is: {}'.format(self.state.caffe_net_state))
 
             self.state.last_frame = input_image
     
@@ -145,7 +145,7 @@ class CaffeVisApp(BaseApp):
     def draw(self, panes):
         if self._can_skip_all(panes):
             if self.debug_level > 1:
-                print 'CaffeVisApp.draw: skipping'
+                print('CaffeVisApp.draw: skipping')
             return False
 
         with self.state.lock:
@@ -157,7 +157,7 @@ class CaffeVisApp(BaseApp):
 
         if do_draw:
             if self.debug_level > 1:
-                print 'CaffeVisApp.draw: drawing'
+                print('CaffeVisApp.draw: drawing')
 
             if 'caffevis_control' in panes:
                 self._draw_control_pane(panes['caffevis_control'])
@@ -263,52 +263,52 @@ class CaffeVisApp(BaseApp):
                     'thick': self.settings.caffevis_status_thick}
         loc = self.settings.caffevis_status_loc[::-1]   # Reverse to OpenCV c,r order
 
-        status = StringIO.StringIO()
-        status2 = StringIO.StringIO()
+        status = io.StringIO()
+        status2 = io.StringIO()
         fps = self.proc_thread.approx_fps()
         with self.state.lock:
             pattern_first_mode = "first" if self.state.pattern_first_only else "all"
             if self.state.pattern_mode == PatternMode.MAXIMAL_OPTIMIZED_IMAGE:
-                print >> status, 'pattern(' + pattern_first_mode + ' optimized max)'
+                print('pattern(' + pattern_first_mode + ' optimized max)', file=status)
             elif self.state.pattern_mode == PatternMode.MAXIMAL_INPUT_IMAGE:
-                print >> status, 'pattern(' + pattern_first_mode + ' input max)'
+                print('pattern(' + pattern_first_mode + ' input max)', file=status)
             elif self.state.pattern_mode == PatternMode.WEIGHTS_HISTOGRAM:
-                print >> status, 'histogram(weights)'
+                print('histogram(weights)', file=status)
             elif self.state.pattern_mode == PatternMode.MAX_ACTIVATIONS_HISTOGRAM:
-                print >> status, 'histogram(maximal activations)'
+                print('histogram(maximal activations)', file=status)
             elif self.state.pattern_mode == PatternMode.ACTIVATIONS_CORRELATION:
-                print >> status, 'correlation(maximal activations)'
+                print('correlation(maximal activations)', file=status)
             elif self.state.pattern_mode == PatternMode.WEIGHTS_CORRELATION:
-                print >> status, 'correlation(weights)'
+                print('correlation(weights)', file=status)
             elif self.state.layers_show_back:
-                print >> status, 'back'
+                print('back', file=status)
             else:
-                print >> status, 'fwd'
+                print('fwd', file=status)
 
             default_layer_name = self.state.get_default_layer_name()
-            print >>status, '%s:%d |' % (default_layer_name, self.state.selected_unit),
+            print('%s:%d |' % (default_layer_name, self.state.selected_unit), end='', file=status)
             if not self.state.back_enabled:
-                print >>status, 'Back: off',
+                print('Back: off', end='', file=status)
             else:
-                print >>status, 'Back: %s (%s)' % (BackpropMode.to_string(self.state.back_mode), BackpropViewOption.to_string(self.state.back_view_option)),
-                print >>status, '(from %s_%d)' % (self.state.get_default_layer_name(self.state.get_current_backprop_layer_definition()), self.state.backprop_unit),
-            print >>status, '|',
-            print >>status, 'Boost: %g/%g' % (self.state.layer_boost_indiv, self.state.layer_boost_gamma)
+                print('Back: %s (%s)' % (BackpropMode.to_string(self.state.back_mode), BackpropViewOption.to_string(self.state.back_view_option)), end='', file=status)
+                print('(from %s_%d)' % (self.state.get_default_layer_name(self.state.get_current_backprop_layer_definition()), self.state.backprop_unit), end='', file=status)
+            print('|', end='', file=status)
+            print('Boost: %g/%g' % (self.state.layer_boost_indiv, self.state.layer_boost_gamma), file=status)
 
             if fps > 0:
-                print >>status, '| FPS: %.01f' % fps
+                print('| FPS: %.01f' % fps, file=status)
 
             if self.state.next_label:
-                print >> status, '| GT Label: %s' % self.state.next_label
+                print('| GT Label: %s' % self.state.next_label, file=status)
 
             if self.state.extra_msg:
-                print >>status, '|', self.state.extra_msg
+                print('| {}'.format(self.state.extra_msg), file=status)
 
-            print >> status2, 'Layer size: %s' % (self.state.get_layer_output_size_string())
+            print('Layer size: %s' % (self.state.get_layer_output_size_string()), file=status2)
 
-            print >> status2, '| Receptive field:', '%s' % (str(get_receptive_field(self.settings, self.net, default_layer_name)))
+            print('| Receptive field:', '%s' % (str(get_receptive_field(self.settings, self.net, default_layer_name))), file=status2)
 
-            print >> status2, '| Input: %s' % (str(self.state.next_filename))
+            print('| Input: %s' % (str(self.state.next_filename)), file=status2)
 
         strings_line1 = [FormattedString(line, defaults) for line in status.getvalue().split('\n')]
         strings_line2 = [FormattedString(line, defaults) for line in status2.getvalue().split('\n')]
@@ -338,7 +338,7 @@ class CaffeVisApp(BaseApp):
 
         loc = self.settings.caffevis_buttons_loc[::-1]  # Reverse to OpenCV c,r order
 
-        text = StringIO.StringIO()
+        text = io.StringIO()
         fps = self.proc_thread.approx_fps()
 
         lines = list()
@@ -512,7 +512,7 @@ class CaffeVisApp(BaseApp):
                                                    pane.data.shape[1],
                                                    pane.data.shape[2]), dtype=np.uint8)
                     display_3D = self.downsample_display_3d(display_3D_highres, layer_dat_3D, pane, tile_cols, tile_rows)
-                    print "ERROR: patterns view with maximal input images is not implemented when settings.caffevis_outputs_dir_folder_format == 'original_combined_single_image'"
+                    print("ERROR: patterns view with maximal input images is not implemented when settings.caffevis_outputs_dir_folder_format == 'original_combined_single_image'")
 
                 elif self.settings.caffevis_outputs_dir_folder_format == 'max_tracker_output':
                     display_2D, display_3D, display_3D_highres, is_layer_summary_loaded = self.load_pattern_images_optimizer_format(
@@ -770,7 +770,7 @@ class CaffeVisApp(BaseApp):
 
         # limit loading
         if units_num > 1000:
-            print "WARNING: load_image_per_unit was asked to load %d units, aborted to avoid hang" % (units_num)
+            print("WARNING: load_image_per_unit was asked to load %d units, aborted to avoid hang" % (units_num))
             return None
 
         # for each neuron in layer
@@ -780,7 +780,7 @@ class CaffeVisApp(BaseApp):
 
             try:
                 if unit_id % 10 == 0:
-                    print "loading %s images for layer %s channel %d out of %d" % (file_search_pattern, load_layer, unit_id, units_num)
+                    print("loading %s images for layer %s channel %d out of %d" % (file_search_pattern, load_layer, unit_id, units_num))
 
                 unit_first_image = get_image_from_files(self.settings, unit_folder_path, False, resize_shape, first_only)
 
@@ -795,8 +795,8 @@ class CaffeVisApp(BaseApp):
                 display_3D_highres[unit_id, :, ::] = unit_first_image
 
             except:
-                print '\nAttempted to load file from %s but failed. To supress this warning, remove layer "%s" from settings.caffevis_jpgvis_layers' % \
-                      (unit_folder_path, load_layer)
+                print('\nAttempted to load file from %s but failed. To supress this warning, remove layer "%s" from settings.caffevis_jpgvis_layers' % \
+                      (unit_folder_path, load_layer))
                 pass
         return display_3D_highres
 
@@ -858,7 +858,7 @@ class CaffeVisApp(BaseApp):
             def calculate_weights_histogram_for_specific_unit(channel_idx, fig, ax, do_print):
 
                 if do_print and channel_idx % 10 == 0:
-                    print "calculating weights histogram for layer %s channel %d out of %d" % (layer_name, channel_idx, n_channels)
+                    print("calculating weights histogram for layer %s channel %d out of %d" % (layer_name, channel_idx, n_channels))
 
                 # get vector of weights
                 weights = net.params[layer_name][0].data[channel_idx].flatten()
@@ -930,7 +930,7 @@ class CaffeVisApp(BaseApp):
                     # calculate weights histogram image
 
                     # check if layer has weights at all
-                    if not net.params.has_key(layer_name):
+                    if layer_name not in net.params:
                         return display_2D, empty_display_3D, empty_display_3D, is_layer_summary_loaded
 
                     # pattern_image_key_layer = (layer_name, "weights_histogram", True)
@@ -986,7 +986,7 @@ class CaffeVisApp(BaseApp):
                             mkdir_p(folder_path)
                             save_caffe_image(display_2D[:,:,::-1].astype(np.float32).transpose((2,0,1)), cache_layer_weights_histogram_image_path)
                         else:
-                            print "WARNING: unable to save weight histogram to cache since caffevis_outputs_dir is not set"
+                            print("WARNING: unable to save weight histogram to cache since caffevis_outputs_dir is not set")
 
                     else:
 
@@ -1004,7 +1004,7 @@ class CaffeVisApp(BaseApp):
                             mkdir_p(folder_path)
                             save_caffe_image(display_2D[:,:,::-1].astype(np.float32).transpose((2,0,1)), cache_details_weights_histogram_image_path)
                         else:
-                            print "WARNING: unable to save weight histogram to cache since caffevis_outputs_dir is not set"
+                            print("WARNING: unable to save weight histogram to cache since caffevis_outputs_dir is not set")
 
                         # generate empty highlights
                         display_2D_highlights_only = self.prepare_tile_image(display_3D * 0, True, n_channels, tile_rows, tile_cols)
@@ -1080,7 +1080,7 @@ class CaffeVisApp(BaseApp):
                     # calculate weights correlation image
 
                     # check if layer has weights at all
-                    if not net.params.has_key(layer_name):
+                    if layer_name not in net.params:
                         return display_2D, empty_display_3D, empty_display_3D, is_layer_summary_loaded
 
                     # skip layers with only one channel
@@ -1120,7 +1120,7 @@ class CaffeVisApp(BaseApp):
                         mkdir_p(folder_path)
                         save_caffe_image(display_2D[:,:,::-1].astype(np.float32).transpose((2,0,1)), cache_layer_weights_correlation_image_path)
                     else:
-                        print "WARNING: unable to save weight correlationto cache since caffevis_outputs_dir is not set"
+                        print("WARNING: unable to save weight correlationto cache since caffevis_outputs_dir is not set")
 
                 self.img_cache.set(pattern_image_key_3d, display_3D_highres)
                 self.img_cache.set(pattern_image_key_2d, display_2D)
@@ -1162,12 +1162,12 @@ class CaffeVisApp(BaseApp):
                 # load pickle file
                 net_max_tracker = load_max_tracker_from_file(maximum_activation_histogram_data_file)
 
-                if not net_max_tracker.max_trackers.has_key(default_layer_name):
+                if default_layer_name not in net_max_tracker.max_trackers:
                     return display_2D, empty_display_3D, empty_display_3D, is_layer_summary_loaded
 
                 # check if
                 if not hasattr(net_max_tracker.max_trackers[default_layer_name], 'channel_to_histogram'):
-                    print "ERROR: file %s is missing the field channel_to_histogram, try rerun find_max_acts to generate it" % (maximum_activation_histogram_data_file)
+                    print("ERROR: file %s is missing the field channel_to_histogram, try rerun find_max_acts to generate it" % (maximum_activation_histogram_data_file))
                     return display_2D, empty_display_3D, empty_display_3D, is_layer_summary_loaded
 
                 channel_to_histogram = net_max_tracker.max_trackers[default_layer_name].channel_to_histogram
